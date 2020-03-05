@@ -17,7 +17,6 @@ class UI {
     constructor() {
         this.userData = [];
         this.bodyBeforeEditable = document.getElementById("tableBody");
-        this.count = 0;
         let selectList = document.createElement("select");
         let newUserSelectList = document.createElement("select");
         selectList.id = "mySelect";
@@ -39,9 +38,6 @@ class UI {
         let idCell = document.getElementById("newUserRole");
         this.dropdownNewUser.selectedIndex = +Roles[0];
         idCell.replaceWith(this.dropdownNewUser);
-    }
-    getNum() {
-        return this.count++;
     }
     reallign() {
         return __awaiter(this, void 0, void 0, function* () {
@@ -91,19 +87,19 @@ class UI {
                 newBody.appendChild(tr);
             }
             oldBody.parentNode.replaceChild(newBody, oldBody);
-            this.count = this.userData.length;
             addEventListenerToTable();
         });
     }
-    updateRow(rowIndex, key) {
+    updateRow(rowIndex, key, firstBtn, secondBtn) {
         let table = document.getElementById("tableBody");
         if (key == "E") {
+            console.log("Edit");
             let bodyBeforeEditable = table.cloneNode(true);
             let rowBeforeEditable = bodyBeforeEditable.rows[rowIndex];
-            let firstBtn = rowBeforeEditable.childNodes[7].childNodes[1];
-            let secondBtn = rowBeforeEditable.childNodes[8].childNodes[1];
-            firstBtn.setAttribute("id", "edit");
-            secondBtn.setAttribute("id", "delete");
+            let fBtn = rowBeforeEditable.childNodes[7].childNodes[1];
+            let sBtn = rowBeforeEditable.childNodes[8].childNodes[1];
+            fBtn.setAttribute("id", "edit");
+            sBtn.setAttribute("id", "delete");
             this.bodyBeforeEditable = bodyBeforeEditable;
             let row = table.rows[rowIndex];
             for (let i = 0; i < 7; i++) {
@@ -116,36 +112,57 @@ class UI {
                 }
                 idCell.setAttribute("contenteditable", "true");
             }
+            firstBtn.setAttribute("id", "save");
+            secondBtn.setAttribute("id", "cancel");
             manipulateButtons.changeButton(rowIndex, key);
             manipulateButtons.disableButtons(rowIndex);
         }
         else {
+            console.log("Save");
             let row = table.rows[rowIndex];
-            for (let i = 0; i < 7; i++) {
-                let idCell = row.childNodes[i];
-                if (i == 5) {
-                    let idCell = document.getElementById("mySelect");
-                    let selectedVal = +idCell.options[idCell.selectedIndex].value;
-                    let td = document.createElement('td');
-                    td.innerHTML = Roles[selectedVal];
-                    idCell.replaceWith(td);
-                    continue;
-                }
-                idCell.setAttribute("contenteditable", "false");
+            let emailCheckFlag = false, phoneCheckFlag = false;
+            let email = row.childNodes[3].textContent;
+            let phone = row.childNodes[4].textContent;
+            if (phone.match(/^[(]{0,1}[0-9]{3}[)]{0,1}[-\s\.]{0,1}[0-9]{3}[-\s\.]{0,1}[0-9]{4}$/)) {
+                phoneCheckFlag = true;
             }
-            let updatedUserData = new userDataModel();
-            row = table.rows[rowIndex];
-            updatedUserData.firstname = row.childNodes[0].textContent;
-            updatedUserData.middlename = row.childNodes[1].textContent;
-            updatedUserData.lastname = row.childNodes[2].textContent;
-            updatedUserData.email = row.childNodes[3].textContent;
-            updatedUserData.phone = row.childNodes[4].textContent;
-            updatedUserData.role = Roles[row.childNodes[5].textContent];
-            updatedUserData.address = row.childNodes[6].textContent;
-            updatedUserData.index = this.userData[rowIndex].index;
-            logic.update(updatedUserData);
-            manipulateButtons.changeButton(rowIndex, key);
-            manipulateButtons.enableButtons();
+            if (email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+                emailCheckFlag = true;
+            }
+            if (phoneCheckFlag && emailCheckFlag) {
+                document.getElementById("danger").style.visibility = "hidden";
+                console.log("Done");
+                for (let i = 0; i < 7; i++) {
+                    let idCell = row.childNodes[i];
+                    if (i == 5) {
+                        let idCell = document.getElementById("mySelect");
+                        let selectedVal = +idCell.options[idCell.selectedIndex].value;
+                        let td = document.createElement('td');
+                        td.innerHTML = Roles[selectedVal];
+                        idCell.replaceWith(td);
+                        continue;
+                    }
+                    idCell.setAttribute("contenteditable", "false");
+                }
+                let updatedUserData = new userDataModel();
+                row = table.rows[rowIndex];
+                updatedUserData.firstname = row.childNodes[0].textContent;
+                updatedUserData.middlename = row.childNodes[1].textContent;
+                updatedUserData.lastname = row.childNodes[2].textContent;
+                updatedUserData.email = row.childNodes[3].textContent;
+                updatedUserData.phone = row.childNodes[4].textContent;
+                updatedUserData.role = Roles[row.childNodes[5].textContent];
+                updatedUserData.address = row.childNodes[6].textContent;
+                updatedUserData.index = this.userData[rowIndex].index;
+                firstBtn.setAttribute("id", "edit");
+                secondBtn.setAttribute("id", "delete");
+                logic.update(updatedUserData);
+                manipulateButtons.changeButton(rowIndex, key);
+                manipulateButtons.enableButtons();
+            }
+            else {
+                document.getElementById("danger").style.visibility = "visible";
+            }
         }
     }
     deleteRow(rowIndex, key) {
@@ -159,6 +176,7 @@ class UI {
             logic.delete(index);
         }
         else {
+            document.getElementById("danger").style.visibility = "hidden";
             let currBody = document.getElementById("tableBody");
             currBody.parentNode.replaceChild(this.bodyBeforeEditable, currBody);
             manipulateButtons.changeButton(rowIndex, key);

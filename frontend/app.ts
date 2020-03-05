@@ -10,12 +10,10 @@ interface PresentationLayer {
     dropdownNewUser: HTMLSelectElement;
     bodyBeforeEditable: HTMLTableElement;
     userData: userDataModel[];
-    count: number;
-    getNum(): number;
     reallign(): Promise<void>;
     createUser(): void;
     loadData(): Promise<void>;
-    updateRow(rowIndex: number, key: string): void;
+    updateRow(rowIndex: number, key: string, firstBtn: HTMLButtonElement, secondBtn: HTMLButtonElement): void;
     deleteRow(rowIndex: number, key: string): void;
 }
 
@@ -24,11 +22,9 @@ class UI implements PresentationLayer {
     dropdownNewUser: HTMLSelectElement;
     bodyBeforeEditable: HTMLTableElement;
     userData: userDataModel[] = [];
-    count: number;
 
     constructor() {
         this.bodyBeforeEditable = document.getElementById("tableBody")! as HTMLTableElement;
-        this.count = 0;
         let selectList: HTMLSelectElement = document.createElement("select");
         let newUserSelectList: HTMLSelectElement = document.createElement("select");
         selectList.id = "mySelect";
@@ -56,10 +52,6 @@ class UI implements PresentationLayer {
         let idCell: any = document.getElementById("newUserRole");
         this.dropdownNewUser.selectedIndex = +Roles[0];
         idCell!.replaceWith(this.dropdownNewUser);
-    }
-
-    getNum(): number {
-        return this.count++;
     }
 
     async reallign(): Promise<void> {
@@ -114,22 +106,22 @@ class UI implements PresentationLayer {
         }
 
         oldBody.parentNode!.replaceChild(newBody, oldBody);
-        this.count = this.userData.length;
 
         addEventListenerToTable();
     }
 
-    updateRow(rowIndex: number, key: string): void {      
+    updateRow(rowIndex: number, key: string, firstBtn: HTMLButtonElement, secondBtn: HTMLButtonElement): void {      
         let table = document.getElementById("tableBody")! as HTMLTableElement;  
         if(key == "E") {
+            console.log("Edit")
             let bodyBeforeEditable = table.cloneNode(true)! as HTMLTableElement;
             let rowBeforeEditable = bodyBeforeEditable.rows[rowIndex] as HTMLTableRowElement;
 
-            let firstBtn = rowBeforeEditable.childNodes[7].childNodes[1] as HTMLButtonElement;
-            let secondBtn = rowBeforeEditable.childNodes[8].childNodes[1] as HTMLButtonElement;
+            let fBtn = rowBeforeEditable.childNodes[7].childNodes[1] as HTMLButtonElement;
+            let sBtn = rowBeforeEditable.childNodes[8].childNodes[1] as HTMLButtonElement;
 
-            firstBtn.setAttribute("id", "edit");
-            secondBtn.setAttribute("id", "delete"); 
+            fBtn.setAttribute("id", "edit");
+            sBtn.setAttribute("id", "delete"); 
 
             this.bodyBeforeEditable = bodyBeforeEditable;
             
@@ -145,39 +137,64 @@ class UI implements PresentationLayer {
                 idCell.setAttribute("contenteditable", "true");
             }
 
+            firstBtn.setAttribute("id", "save");
+            secondBtn.setAttribute("id", "cancel");
+
             manipulateButtons.changeButton(rowIndex, key);
             manipulateButtons.disableButtons(rowIndex);
         } else {
+            console.log("Save");
             let row = table.rows[rowIndex];
-            for(let i=0; i<7; i++) {
-                let idCell: any = row.childNodes[i];
-                if( i == 5) {
-                    let idCell = document.getElementById("mySelect")! as HTMLSelectElement;
-                    let selectedVal: number = +idCell.options[idCell.selectedIndex].value;
-                    let td: HTMLTableCellElement = document.createElement('td');
-                    td.innerHTML = Roles[selectedVal];
-                    idCell!.replaceWith(td);
-                    continue;
-                }
-                idCell.setAttribute("contenteditable", "false");
+            let emailCheckFlag: boolean = false, phoneCheckFlag: boolean = false;
+
+            let email: string = row.childNodes[3].textContent!;
+            let phone: string = row.childNodes[4].textContent!;
+            if(phone.match(/^[(]{0,1}[0-9]{3}[)]{0,1}[-\s\.]{0,1}[0-9]{3}[-\s\.]{0,1}[0-9]{4}$/)) {
+                phoneCheckFlag = true;
             }
 
-            let updatedUserData: userDataModel = new userDataModel();
+            if(email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+                emailCheckFlag = true;
+            }
 
-            row = table.rows[rowIndex];
-            updatedUserData.firstname = row.childNodes[0].textContent!;
-            updatedUserData.middlename = row.childNodes[1].textContent!;
-            updatedUserData.lastname = row.childNodes[2].textContent!;
-            updatedUserData.email = row.childNodes[3].textContent!;
-            updatedUserData.phone = row.childNodes[4].textContent!;
-            updatedUserData.role = Roles[row.childNodes[5].textContent! as keyof typeof Roles];
-            
-            updatedUserData.address = row.childNodes[6].textContent!;
-            updatedUserData.index = this.userData[rowIndex].index;
+            if( phoneCheckFlag && emailCheckFlag ) {
+                document.getElementById("danger")!.style.visibility = "hidden";
+                console.log("Done");
+                for(let i=0; i<7; i++) {
+                    let idCell: any = row.childNodes[i];
+                    if( i == 5) {
+                        let idCell = document.getElementById("mySelect")! as HTMLSelectElement;
+                        let selectedVal: number = +idCell.options[idCell.selectedIndex].value;
+                        let td: HTMLTableCellElement = document.createElement('td');
+                        td.innerHTML = Roles[selectedVal];
+                        idCell!.replaceWith(td);
+                        continue;
+                    }
+                    idCell.setAttribute("contenteditable", "false");
+                }
+    
+                let updatedUserData: userDataModel = new userDataModel();
 
-            logic.update(updatedUserData);
-            manipulateButtons.changeButton(rowIndex, key);
-            manipulateButtons.enableButtons();
+                row = table.rows[rowIndex];
+                updatedUserData.firstname = row.childNodes[0].textContent!;
+                updatedUserData.middlename = row.childNodes[1].textContent!;
+                updatedUserData.lastname = row.childNodes[2].textContent!;
+                updatedUserData.email = row.childNodes[3].textContent!;
+                updatedUserData.phone = row.childNodes[4].textContent!;
+                updatedUserData.role = Roles[row.childNodes[5].textContent! as keyof typeof Roles];
+                
+                updatedUserData.address = row.childNodes[6].textContent!;
+                updatedUserData.index = this.userData[rowIndex].index;
+
+                firstBtn.setAttribute("id", "edit");
+                secondBtn.setAttribute("id", "delete");
+
+                logic.update(updatedUserData);
+                manipulateButtons.changeButton(rowIndex, key);
+                manipulateButtons.enableButtons();
+            } else {
+                document.getElementById("danger")!.style.visibility = "visible";
+            }
         }
     }
 
@@ -192,6 +209,7 @@ class UI implements PresentationLayer {
             this.userData.splice(rowIndex, 1);
             logic.delete(index);
         } else {
+            document.getElementById("danger")!.style.visibility = "hidden";
             let currBody = document.getElementById("tableBody")! as HTMLTableElement;
             currBody.parentNode!.replaceChild(this.bodyBeforeEditable, currBody);
 

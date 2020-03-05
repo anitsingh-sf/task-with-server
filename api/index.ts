@@ -45,7 +45,6 @@ app.post("/api/addUser", (req, res) => {
 app.get("/api/getData", (req, res) => { 
     const myQuery = "SELECT index, firstname, middlename, lastname, email, phone, role, address FROM data ORDER BY index DESC";
     
-    console.log("Changed");
     run.query(myQuery, (err, results) => {
         if (err) {
             throw err;
@@ -65,8 +64,6 @@ app.post("/api/updateUser", (req, res) => {
     " address = '" + req.body.address + "'," +
     " modifiedon = current_timestamp" + 
     " WHERE index = " + req.body.index + ";";
-
-    console.log(myQuery);
 
     run.query(myQuery, (err) => {
         if (err) {
