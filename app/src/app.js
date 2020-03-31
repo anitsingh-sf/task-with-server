@@ -10,16 +10,16 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import { userDataModel } from './dataModel.js';
 import { manipulateButtons } from './manipulateButtons.js';
 import { newUserEntryMethod } from './newUserEntry.js';
-import { Roles } from './dataModel.js';
+import { Roles, Customer } from './dataModel.js';
 import { logic } from './logic.js';
 import { addEventListenerToTable } from './addEvents.js';
 class UI {
     constructor() {
         this.userData = [];
         this.bodyBeforeEditable = document.getElementById("tableBody");
-        let selectList = document.createElement("select");
+        let roleSelectList = document.createElement("select");
         let newUserSelectList = document.createElement("select");
-        selectList.id = "mySelect";
+        roleSelectList.id = "mySelect";
         newUserSelectList.id = "newUserSelect";
         for (let i in Roles) {
             if (!isNaN(Number(i))) {
@@ -29,15 +29,38 @@ class UI {
                 option.text = Roles[i];
                 newUserOption.value = i;
                 newUserOption.text = Roles[i];
-                selectList.appendChild(option);
+                roleSelectList.appendChild(option);
                 newUserSelectList.appendChild(newUserOption);
             }
         }
-        this.dropdown = selectList;
-        this.dropdownNewUser = newUserSelectList;
+        this.dropdownRole = roleSelectList;
+        newUserSelectList.selectedIndex = +Roles[0];
+        let newUserSelectCell = document.createElement('td');
+        newUserSelectCell.appendChild(newUserSelectList);
         let idCell = document.getElementById("newUserRole");
-        this.dropdownNewUser.selectedIndex = +Roles[0];
-        idCell.replaceWith(this.dropdownNewUser);
+        idCell.replaceWith(newUserSelectCell);
+        let customerSelectList = document.createElement("select");
+        let newUserCustomerList = document.createElement("select");
+        customerSelectList.id = "myCustomerSelect";
+        newUserCustomerList.id = "newUserCustomer";
+        for (let i in Customer) {
+            if (!isNaN(Number(i))) {
+                let option = document.createElement("option");
+                let newUserCustomerOption = document.createElement("option");
+                option.value = i;
+                option.text = Customer[i];
+                newUserCustomerOption.value = i;
+                newUserCustomerOption.text = Customer[i];
+                customerSelectList.appendChild(option);
+                newUserCustomerList.appendChild(newUserCustomerOption);
+            }
+        }
+        this.dropdownCustomer = customerSelectList;
+        newUserCustomerList.selectedIndex = +Customer[0];
+        let newUserCustomerCell = document.createElement('td');
+        newUserCustomerCell.appendChild(newUserCustomerList);
+        idCell = document.getElementById("newUserCustomer");
+        idCell.replaceWith(newUserCustomerCell);
     }
     reallign() {
         return __awaiter(this, void 0, void 0, function* () {
@@ -81,6 +104,7 @@ class UI {
                     '<td contenteditable="false">' + obj.email + '</td>' +
                     '<td contenteditable="false">' + obj.phone + '</td>' +
                     '<td contenteditable="false">' + Roles[obj.role] + '</td>' +
+                    '<td contenteditable="false">' + Customer[obj.customer] + '</td>' +
                     '<td contenteditable="false">' + obj.address + '</td>' +
                     '<td> <button type="button" class="edit btn btn-primary" id="edit">Edit Data</button></td>' +
                     '<td> <button type="button" class="delete btn btn-primary" id="delete">Delete Data</button></td>';
@@ -93,21 +117,26 @@ class UI {
     updateRow(rowIndex, key, firstBtn, secondBtn) {
         let table = document.getElementById("tableBody");
         if (key == "E") {
-            console.log("Edit");
             let bodyBeforeEditable = table.cloneNode(true);
             let rowBeforeEditable = bodyBeforeEditable.rows[rowIndex];
-            let fBtn = rowBeforeEditable.childNodes[7].childNodes[1];
-            let sBtn = rowBeforeEditable.childNodes[8].childNodes[1];
+            let fBtn = rowBeforeEditable.childNodes[8].childNodes[1];
+            let sBtn = rowBeforeEditable.childNodes[9].childNodes[1];
             fBtn.setAttribute("id", "edit");
             sBtn.setAttribute("id", "delete");
             this.bodyBeforeEditable = bodyBeforeEditable;
             let row = table.rows[rowIndex];
-            for (let i = 0; i < 7; i++) {
+            for (let i = 0; i < 8; i++) {
                 let idCell = row.childNodes[i];
                 if (i == 5) {
                     let prevVal = idCell.textContent;
-                    this.dropdown.selectedIndex = +Roles[prevVal];
-                    idCell.replaceWith(this.dropdown);
+                    this.dropdownRole.selectedIndex = +Roles[prevVal];
+                    idCell.firstChild.replaceWith(this.dropdownRole);
+                    continue;
+                }
+                if (i == 6) {
+                    let prevVal = idCell.textContent;
+                    this.dropdownCustomer.selectedIndex = +Customer[prevVal];
+                    idCell.firstChild.replaceWith(this.dropdownCustomer);
                     continue;
                 }
                 idCell.setAttribute("contenteditable", "true");
@@ -118,7 +147,6 @@ class UI {
             manipulateButtons.disableButtons(rowIndex);
         }
         else {
-            console.log("Save");
             let row = table.rows[rowIndex];
             let emailCheckFlag = false, phoneCheckFlag = false;
             let email = row.childNodes[3].textContent;
@@ -132,14 +160,18 @@ class UI {
             if (phoneCheckFlag && emailCheckFlag) {
                 document.getElementById("danger").style.visibility = "hidden";
                 console.log("Done");
-                for (let i = 0; i < 7; i++) {
+                for (let i = 0; i < 8; i++) {
                     let idCell = row.childNodes[i];
                     if (i == 5) {
-                        let idCell = document.getElementById("mySelect");
-                        let selectedVal = +idCell.options[idCell.selectedIndex].value;
-                        let td = document.createElement('td');
-                        td.innerHTML = Roles[selectedVal];
-                        idCell.replaceWith(td);
+                        let selectCell = document.getElementById("mySelect");
+                        let selectedVal = +selectCell.options[selectCell.selectedIndex].value;
+                        idCell.innerHTML = Roles[selectedVal];
+                        continue;
+                    }
+                    if (i == 6) {
+                        let selectCell = document.getElementById("myCustomerSelect");
+                        let selectedVal = +selectCell.options[selectCell.selectedIndex].value;
+                        idCell.innerHTML = Customer[selectedVal];
                         continue;
                     }
                     idCell.setAttribute("contenteditable", "false");
@@ -152,7 +184,8 @@ class UI {
                 updatedUserData.email = row.childNodes[3].textContent;
                 updatedUserData.phone = row.childNodes[4].textContent;
                 updatedUserData.role = Roles[row.childNodes[5].textContent];
-                updatedUserData.address = row.childNodes[6].textContent;
+                updatedUserData.customer = Customer[row.childNodes[6].textContent];
+                updatedUserData.address = row.childNodes[7].textContent;
                 updatedUserData.index = this.userData[rowIndex].index;
                 firstBtn.setAttribute("id", "edit");
                 secondBtn.setAttribute("id", "delete");

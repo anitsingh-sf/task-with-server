@@ -4,7 +4,8 @@ export class userDataModel {
     lastname: string;
     email: string;
     phone: string;
-    role: number
+    role: number;
+    customer: number;
     address: string;
     index: string;
 }
@@ -14,4 +15,9 @@ export enum Roles {
     Tester,
     QA,
     DevOps
+}
+
+export enum Customer {
+    Amazon = 0,
+    Flipkart
 }

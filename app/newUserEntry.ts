@@ -1,5 +1,5 @@
 import { view } from './app.js';
-import { userDataModel, Roles } from './dataModel.js';
+import { userDataModel, Roles, Customer } from './dataModel.js';
 import { logic } from './logic.js';
 import { addEventListenerToTable } from './addEvents.js';
 
@@ -16,9 +16,11 @@ class newUserEntry {
         
         let idCell = document.getElementById("newUserSelect")! as HTMLSelectElement;
         newUserData.role = idCell!.selectedIndex;
+
+        idCell = document.getElementById("newUserCustomer")! as HTMLSelectElement;
+        newUserData.customer = idCell!.selectedIndex;
         
         newUserData.address = newUserEntryCell[5].innerHTML;
-        newUserData.index = "";
 
         let oldBody: HTMLTableSectionElement;
         oldBody = document.getElementById("tableBody")! as HTMLTableSectionElement;
@@ -31,6 +33,7 @@ class newUserEntry {
         '<td contenteditable="false">' + newUserData.email + '</td>' +
         '<td contenteditable="false">' + newUserData.phone + '</td>' +
         '<td contenteditable="false">' + Roles[newUserData.role] + '</td>' +
+        '<td contenteditable="false">' + Customer[newUserData.customer] + '</td>' +
         '<td contenteditable="false">' + newUserData.address + '</td>' +
         '<td> <button type="button" class="btn btn-primary" id="edit">Edit Data</button></td>' +
         '<td> <button type="button" class="btn btn-primary" id="delete">Delete Data</button></td>';

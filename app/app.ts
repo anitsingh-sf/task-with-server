@@ -1,13 +1,13 @@
 import { userDataModel } from './dataModel.js';
 import { manipulateButtons } from './manipulateButtons.js';
 import { newUserEntryMethod } from './newUserEntry.js';
-import { Roles } from './dataModel.js';
+import { Roles, Customer } from './dataModel.js';
 import { logic } from './logic.js';
 import { addEventListenerToTable } from './addEvents.js';
 
 interface PresentationLayer {
-    dropdown: HTMLSelectElement;
-    dropdownNewUser: HTMLSelectElement;
+    dropdownRole: HTMLSelectElement;
+    dropdownCustomer: HTMLSelectElement;
     bodyBeforeEditable: HTMLTableElement;
     userData: userDataModel[];
     reallign(): Promise<void>;
@@ -18,16 +18,16 @@ interface PresentationLayer {
 }
 
 class UI implements PresentationLayer {
-    dropdown: HTMLSelectElement;
-    dropdownNewUser: HTMLSelectElement;
+    dropdownRole: HTMLSelectElement;
+    dropdownCustomer: HTMLSelectElement;
     bodyBeforeEditable: HTMLTableElement;
     userData: userDataModel[] = [];
 
     constructor() {
         this.bodyBeforeEditable = document.getElementById("tableBody")! as HTMLTableElement;
-        let selectList: HTMLSelectElement = document.createElement("select");
+        let roleSelectList: HTMLSelectElement = document.createElement("select");
         let newUserSelectList: HTMLSelectElement = document.createElement("select");
-        selectList.id = "mySelect";
+        roleSelectList.id = "mySelect";
         newUserSelectList.id = "newUserSelect";
 
         for(let i in Roles) {
@@ -41,17 +41,49 @@ class UI implements PresentationLayer {
                 newUserOption.value = i;
                 newUserOption.text = Roles[i];
 
-                selectList.appendChild(option);
+                roleSelectList.appendChild(option);
                 newUserSelectList.appendChild(newUserOption);
             }
         }
 
-        this.dropdown = selectList;
-        this.dropdownNewUser = newUserSelectList;
+        this.dropdownRole = roleSelectList;
+
+        newUserSelectList.selectedIndex = +Roles[0];
+        let newUserSelectCell = document.createElement('td');
+        newUserSelectCell.appendChild(newUserSelectList);
 
         let idCell: any = document.getElementById("newUserRole");
-        this.dropdownNewUser.selectedIndex = +Roles[0];
-        idCell!.replaceWith(this.dropdownNewUser);
+        idCell!.replaceWith(newUserSelectCell);
+
+        let customerSelectList: HTMLSelectElement = document.createElement("select");
+        let newUserCustomerList: HTMLSelectElement = document.createElement("select");
+        customerSelectList.id = "myCustomerSelect";
+        newUserCustomerList.id = "newUserCustomer";
+
+        for(let i in Customer) {
+            if (!isNaN(Number(i))) {
+                let option: HTMLOptionElement = document.createElement("option");
+                let newUserCustomerOption: HTMLOptionElement = document.createElement("option");
+
+                option.value = i;
+                option.text = Customer[i];
+
+                newUserCustomerOption.value = i;
+                newUserCustomerOption.text = Customer[i];
+
+                customerSelectList.appendChild(option);
+                newUserCustomerList.appendChild(newUserCustomerOption);
+            }
+        }
+
+        this.dropdownCustomer = customerSelectList;
+    
+        newUserCustomerList.selectedIndex = +Customer[0];
+        let newUserCustomerCell = document.createElement('td');
+        newUserCustomerCell.appendChild(newUserCustomerList);
+
+        idCell = document.getElementById("newUserCustomer");
+        idCell!.replaceWith(newUserCustomerCell);
     }
 
     async reallign(): Promise<void> {
@@ -99,6 +131,7 @@ class UI implements PresentationLayer {
             '<td contenteditable="false">' + obj.email + '</td>' +
             '<td contenteditable="false">' + obj.phone + '</td>' +
             '<td contenteditable="false">' + Roles[obj.role] + '</td>' +
+            '<td contenteditable="false">' + Customer[obj.customer] + '</td>' +
             '<td contenteditable="false">' + obj.address + '</td>' +
             '<td> <button type="button" class="edit btn btn-primary" id="edit">Edit Data</button></td>' +
             '<td> <button type="button" class="delete btn btn-primary" id="delete">Delete Data</button></td>';
@@ -113,12 +146,11 @@ class UI implements PresentationLayer {
     updateRow(rowIndex: number, key: string, firstBtn: HTMLButtonElement, secondBtn: HTMLButtonElement): void {      
         let table = document.getElementById("tableBody")! as HTMLTableElement;  
         if(key == "E") {
-            console.log("Edit")
             let bodyBeforeEditable = table.cloneNode(true)! as HTMLTableElement;
             let rowBeforeEditable = bodyBeforeEditable.rows[rowIndex] as HTMLTableRowElement;
 
-            let fBtn = rowBeforeEditable.childNodes[7].childNodes[1] as HTMLButtonElement;
-            let sBtn = rowBeforeEditable.childNodes[8].childNodes[1] as HTMLButtonElement;
+            let fBtn = rowBeforeEditable.childNodes[8].childNodes[1] as HTMLButtonElement;
+            let sBtn = rowBeforeEditable.childNodes[9].childNodes[1] as HTMLButtonElement;
 
             fBtn.setAttribute("id", "edit");
             sBtn.setAttribute("id", "delete"); 
@@ -126,12 +158,18 @@ class UI implements PresentationLayer {
             this.bodyBeforeEditable = bodyBeforeEditable;
             
             let row = table.rows[rowIndex];
-            for(let i=0; i<7; i++) {
+            for(let i=0; i<8; i++) {
                 let idCell: any = row.childNodes[i];
                 if( i == 5) {
-                    let prevVal: any = idCell!.textContent!;
-                    this.dropdown.selectedIndex = +Roles[prevVal];
-                    idCell!.replaceWith(this.dropdown);
+                    let prevVal: any = idCell!.textContent;
+                    this.dropdownRole.selectedIndex = +Roles[prevVal];
+                    idCell.firstChild!.replaceWith(this.dropdownRole);
+                    continue;
+                }
+                if( i == 6 ) {
+                    let prevVal: any = idCell!.textContent;
+                    this.dropdownCustomer.selectedIndex = +Customer[prevVal];
+                    idCell.firstChild!.replaceWith(this.dropdownCustomer);
                     continue;
                 }
                 idCell.setAttribute("contenteditable", "true");
@@ -143,7 +181,6 @@ class UI implements PresentationLayer {
             manipulateButtons.changeButton(rowIndex, key);
             manipulateButtons.disableButtons(rowIndex);
         } else {
-            console.log("Save");
             let row = table.rows[rowIndex];
             let emailCheckFlag: boolean = false, phoneCheckFlag: boolean = false;
 
@@ -160,14 +197,18 @@ class UI implements PresentationLayer {
             if( phoneCheckFlag && emailCheckFlag ) {
                 document.getElementById("danger")!.style.visibility = "hidden";
                 console.log("Done");
-                for(let i=0; i<7; i++) {
+                for(let i=0; i<8; i++) {
                     let idCell: any = row.childNodes[i];
                     if( i == 5) {
-                        let idCell = document.getElementById("mySelect")! as HTMLSelectElement;
-                        let selectedVal: number = +idCell.options[idCell.selectedIndex].value;
-                        let td: HTMLTableCellElement = document.createElement('td');
-                        td.innerHTML = Roles[selectedVal];
-                        idCell!.replaceWith(td);
+                        let selectCell = document.getElementById("mySelect")! as HTMLSelectElement;
+                        let selectedVal: number = +selectCell.options[selectCell.selectedIndex].value;
+                        idCell.innerHTML = Roles[selectedVal];
+                        continue;
+                    }
+                    if(i == 6) {
+                        let selectCell = document.getElementById("myCustomerSelect")! as HTMLSelectElement;
+                        let selectedVal: number = +selectCell.options[selectCell.selectedIndex].value;
+                        idCell.innerHTML = Customer[selectedVal];
                         continue;
                     }
                     idCell.setAttribute("contenteditable", "false");
@@ -182,9 +223,10 @@ class UI implements PresentationLayer {
                 updatedUserData.email = row.childNodes[3].textContent!;
                 updatedUserData.phone = row.childNodes[4].textContent!;
                 updatedUserData.role = Roles[row.childNodes[5].textContent! as keyof typeof Roles];
-                
-                updatedUserData.address = row.childNodes[6].textContent!;
-                updatedUserData.index = this.userData[rowIndex].index;
+                updatedUserData.customer = Customer[row.childNodes[6].textContent! as keyof typeof Customer];
+                              
+                updatedUserData.address = row.childNodes[7].textContent!;
+                updatedUserData.index = this.userData[rowIndex].index
 
                 firstBtn.setAttribute("id", "edit");
                 secondBtn.setAttribute("id", "delete");

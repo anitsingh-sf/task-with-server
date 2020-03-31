@@ -8,8 +8,8 @@ export function addEventListenerToTable() {
             if(clickedElement.tagName == "BUTTON") {
                 let row = clickedElement.parentElement?.parentElement as HTMLTableRowElement;
 
-                let firstBtn = row.childNodes[7].childNodes[1] as HTMLButtonElement;
-                let secondBtn = row.childNodes[8].childNodes[1] as HTMLButtonElement;
+                let firstBtn = row.childNodes[8].childNodes[1] as HTMLButtonElement;
+                let secondBtn = row.childNodes[9].childNodes[1] as HTMLButtonElement;
 
                 if(clickedElement.id == "edit") {
                     view.updateRow(row.rowIndex-1, "E", firstBtn, secondBtn);

@@ -5,6 +5,7 @@ export interface dataModel {
     eMail: string,
     phone: string,
     role: number,
+    customer: number,
     address: string,
     index: string
 }

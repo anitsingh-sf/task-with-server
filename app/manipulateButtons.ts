@@ -3,11 +3,11 @@ class manipulateButtonsClass {
         let table = document.getElementById("tableBody")! as HTMLTableElement;
         let row = table.rows[rowIndex];
         if(key === "E") {
-            row.childNodes[7].childNodes[1].textContent = "Save";
-            row.childNodes[8].childNodes[1].textContent = "Cancel";
+            row.childNodes[8].childNodes[1].textContent = "Save";
+            row.childNodes[9].childNodes[1].textContent = "Cancel";
         } else if(key == "S" || key == "C") {
-            row.childNodes[7].childNodes[1].textContent = "Edit Data";
-            row.childNodes[8].childNodes[1].textContent = "Delete Data";
+            row.childNodes[8].childNodes[1].textContent = "Edit Data";
+            row.childNodes[9].childNodes[1].textContent = "Delete Data";
         }
     }
 
@@ -18,8 +18,8 @@ class manipulateButtonsClass {
             if(i == rowIndex) 
                 continue;
             let row = table.rows[i];
-            let editBtn = row.childNodes[7].childNodes[1]! as HTMLButtonElement;
-            let delBtn = row.childNodes[8].childNodes[1]! as HTMLButtonElement;
+            let editBtn = row.childNodes[8].childNodes[1]! as HTMLButtonElement;
+            let delBtn = row.childNodes[9].childNodes[1]! as HTMLButtonElement;
             
             editBtn.disabled = true;
             delBtn.disabled = true;
@@ -31,8 +31,8 @@ class manipulateButtonsClass {
 
         for(let i=0; i<table.rows.length; i++) {
             let row = table.rows[i];
-            let editBtn = row.childNodes[7].childNodes[1]! as HTMLButtonElement;
-            let delBtn = row.childNodes[8].childNodes[1]! as HTMLButtonElement;
+            let editBtn = row.childNodes[8].childNodes[1]! as HTMLButtonElement;
+            let delBtn = row.childNodes[9].childNodes[1]! as HTMLButtonElement;
             
             editBtn.disabled = false;
             delBtn.disabled = false;

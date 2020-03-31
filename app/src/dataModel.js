@@ -7,3 +7,8 @@ export var Roles;
     Roles[Roles["QA"] = 2] = "QA";
     Roles[Roles["DevOps"] = 3] = "DevOps";
 })(Roles || (Roles = {}));
+export var Customer;
+(function (Customer) {
+    Customer[Customer["Amazon"] = 0] = "Amazon";
+    Customer[Customer["Flipkart"] = 1] = "Flipkart";
+})(Customer || (Customer = {}));

@@ -6,7 +6,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const body_parser_1 = __importDefault(require("body-parser"));
 const cors_1 = __importDefault(require("cors"));
-const methods_js_1 = require("./methods.js");
 const pg_1 = __importDefault(require("pg"));
 const app = express_1.default();
 app.use(cors_1.default());
@@ -23,25 +22,26 @@ const run = new Pool({
     port: 5432,
 });
 app.post("/api/addUser", (req, res) => {
-    let index = methods_js_1.getUniqueIndex();
-    const myQuery = "INSERT INTO data (firstname, middlename, lastname, email, phone, role, address, createdon, modifiedon)" +
+    const myQuery = "INSERT INTO data (firstname, middlename, lastname, email, phone, role, customer, address)" +
         " VALUES ('" +
         req.body.firstname + "', '" +
         req.body.middlename + "', '" +
         req.body.lastname + "', '" +
         req.body.email + "', '" +
         req.body.phone + "', " +
-        req.body.role + ", '" +
-        req.body.address + "', current_timestamp, current_timestamp);";
+        req.body.role + ", " +
+        req.body.customer + ", '" +
+        req.body.address + "');";
+    console.log(myQuery);
     run.query(myQuery, (err) => {
         if (err) {
-            throw err;
+            throw console.log(err);
         }
         res.status(200).json("Successful");
     });
 });
 app.get("/api/getData", (req, res) => {
-    const myQuery = "SELECT index, firstname, middlename, lastname, email, phone, role, address FROM data ORDER BY index DESC";
+    const myQuery = "SELECT index, firstname, middlename, lastname, email, phone, role, customer, address FROM data ORDER BY index DESC";
     run.query(myQuery, (err, results) => {
         if (err) {
             throw err;
@@ -57,9 +57,10 @@ app.post("/api/updateUser", (req, res) => {
         " email = '" + req.body.email + "'," +
         " phone = '" + req.body.phone + "'," +
         " role = " + req.body.role + "," +
-        " address = '" + req.body.address + "'," +
-        " modifiedon = current_timestamp" +
+        " customer = " + req.body.customer + "," +
+        " address = '" + req.body.address + "'" +
         " WHERE index = " + req.body.index + ";";
+    console.log(myQuery);
     run.query(myQuery, (err) => {
         if (err) {
             throw err;
