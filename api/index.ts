@@ -1,7 +1,11 @@
 import express from "express";
-import bodyParser from "body-parser";
 import cors from "cors";
 import pg from "pg";
+import fs from "fs";
+import bodyParser from "body-parser";
+import cors from "cors";
+import { dataModel } from "./dataModel.js";
+import { getUniqueIndex } from "./methods.js";
 
 const app = express();
 app.use(cors());
@@ -68,7 +72,7 @@ app.post("/api/updateUser", (req, res) => {
         if (err) {
             throw err;
         }
-        res.status(200).json("Successful");
+        res.status(200).json("Successful");xx
     });
 });
 
