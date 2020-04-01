@@ -1,100 +1,89 @@
 import express from "express";
+import cors from "cors";
+import pg from "pg";
 import fs from "fs";
 import bodyParser from "body-parser";
 import cors from "cors";
 import { dataModel } from "./dataModel.js";
-import { getUniqueIndex, removeUniqueIndex } from "./methods.js";
+import { getUniqueIndex } from "./methods.js";
 
 const app = express();
 app.use(cors());
-
-const filePath: string = __dirname + '/data/data.json';
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
     extended: true
 }));
 
+const Pool = pg.Pool;
+const run = new Pool({
+    user: "postgres",
+    host: "localhost",
+    database: "user-app",
+    password: "Anit123",
+    port: 5432,
+})
+
 app.post("/api/addUser", (req, res) => {
-    const file: string = fs.readFileSync(filePath, 'utf-8')
-    let currData = JSON.parse(file);
-    let index: string = getUniqueIndex();
-    
-    let newUser: dataModel = {
-        "firstName": req.body.firstName,
-        "middleName": req.body.middleName,
-        "lastName": req.body.lastName,
-        "eMail": req.body.eMail,
-        "phone": req.body.phone,
-        "role": req.body.role,
-        "address": req.body.address,
-        "index": index
-    };
+    const myQuery = "INSERT INTO data (firstname, middlename, lastname, email, phone, role, customer, address)" +
+    " VALUES ('" +
+        req.body.firstname + "', '" +
+        req.body.middlename + "', '" +
+        req.body.lastname + "', '" +
+        req.body.email + "', '" +
+        req.body.phone + "', " +
+        req.body.role + ", " +
+        req.body.customer + ", '" +
+        req.body.address + "');";
 
-    currData.push(newUser);
-    let newData = JSON.stringify(currData);
 
-    fs.writeFile(filePath, newData, 'utf-8', (err) => {
-        if(err) {
-            return console.log(err);
+    run.query(myQuery, (err) => {
+        if (err) {
+            throw console.log(err);
         }
-        res.send("Successful");
+        res.status(200).json("Successful");
     });
 });
 
 app.get("/api/getData", (req, res) => { 
-    const file: string = fs.readFileSync(filePath, 'utf-8')
-    res.send(JSON.parse(file));
+    const myQuery = "SELECT index, firstname, middlename, lastname, email, phone, role, customer, address FROM data ORDER BY index DESC";
+    
+    run.query(myQuery, (err, results) => {
+        if (err) {
+            throw err;
+        }
+        res.status(200).json(results.rows);
+    });
 });
 
 app.post("/api/updateUser", (req, res) => {
-    const file: string = fs.readFileSync(filePath, 'utf-8')
-    let currData = JSON.parse(file);
-    let updatedUser: dataModel = {
-        "firstName": req.body.firstName,
-        "middleName": req.body.middleName,
-        "lastName": req.body.lastName,
-        "eMail": req.body.eMail,
-        "phone": req.body.phone,
-        "role": req.body.role,
-        "address": req.body.address,
-        "index": req.body.index
-    };
+    const myQuery = "UPDATE data " + 
+        "SET firstname = '" + req.body.firstname + "'," + 
+        " lastname = '" + req.body.lastname + "'," +
+        " middlename = '" + req.body.middlename + "'," +
+        " email = '" + req.body.email + "'," +
+        " phone = '" + req.body.phone + "'," +
+        " role = " + req.body.role + "," +
+        " customer = " + req.body.customer + "," +
+        " address = '" + req.body.address + "'" +
+        " WHERE index = " + req.body.index + ";";
 
-    for(let x=0; x<currData.length; x++) {
-        if(currData[x].index == req.body.index) {
-            currData[x] = updatedUser;
+    run.query(myQuery, (err) => {
+        if (err) {
+            throw err;
         }
-    }
-    
-    let newData = JSON.stringify(currData);
-
-    fs.writeFile(filePath, newData, 'utf-8', (err) => {
-        if(err) {
-            return console.log(err);
-        }
-        res.send("Successful");
+        res.status(200).json("Successful");xx
     });
 });
 
 app.delete("/api/delUser", (req, res) => {
-    const file: string = fs.readFileSync(filePath, 'utf-8')
-    let currData = JSON.parse(file);
-    for(let x=0; x<currData.length; x++) {
-        if(currData[x].index == req.body.index) {
-            currData.splice(x, 1);
-            break;
+    const myQuery = "DELETE FROM data WHERE index = " + req.body.index + ";" 
+    
+    run.query(myQuery, (err) => {
+        if (err) {
+            throw err;
         }
-    }
-
-    removeUniqueIndex(req.body.index);
-    let newData = JSON.stringify(currData);
-
-    fs.writeFile(filePath, newData, 'utf-8', (err) => {
-        if(err) {
-            return console.log(err);
-        }
-        res.send("Successful");
+        res.status(200).json("Successful");
     });
 });
 

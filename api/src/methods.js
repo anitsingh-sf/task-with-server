@@ -30,20 +30,4 @@ function getUniqueIndex() {
     }
 }
 exports.getUniqueIndex = getUniqueIndex;
-function removeUniqueIndex(id) {
-    const keyFile = fs_1.default.readFileSync(keyFilePath, 'utf-8');
-    let currSet = JSON.parse(keyFile);
-    for (let x = 0; x < currSet.length; x++) {
-        if (currSet[x] == id) {
-            currSet.splice(x, 1);
-            break;
-        }
-    }
-    currSet = JSON.stringify(currSet);
-    fs_1.default.writeFile(keyFilePath, currSet, 'utf-8', (err) => {
-        if (err) {
-            return console.log(err);
-        }
-    });
-}
-exports.removeUniqueIndex = removeUniqueIndex;
+
